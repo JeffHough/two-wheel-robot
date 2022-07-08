@@ -1,7 +1,7 @@
 #include <joystick_to_wheels/joystick_to_wheels.h>
 #include <math.h>
 
-double normalized_right_wheel_speed(double theta)
+double NomalizedRightWheelSpeed(double theta)
 {
   // make sure we're in range of (0->2*pi):
   if (theta < 0){
@@ -36,23 +36,23 @@ double normalized_right_wheel_speed(double theta)
 }
 
 // The left wheel speed is the same as the right wheel, just 
-double normalized_left_wheel_speed(double theta)
+double NomalizedLeftWheelSpeed(double theta)
 {
-  return normalized_right_wheel_speed(theta + M_PI_2);
+  return NomalizedRightWheelSpeed(theta + M_PI_2);
 }
 
 // Get the wheel speeds from the joystick:
-Eigen::Vector2d wheel_speeds_from_joystick(Eigen::Vector2d joystick, double max_voltage)
+Eigen::Vector2d WheelSpeedsFromJoystick(Eigen::Vector2d joystick, double max_spd)
 {
   // get the r and theta:
   double r = joystick(0);
   double theta = joystick(1);
 
   // Get the [normalized] wheel speeds in a vector:
-  Eigen::Vector2d spd = {normalized_left_wheel_speed(theta), normalized_right_wheel_speed(theta)};
+  Eigen::Vector2d spd = {NomalizedLeftWheelSpeed(theta), NomalizedRightWheelSpeed(theta)};
 
   // Use the "r" and "max_voltage" as scaling:
-  spd = spd*r*max_voltage;
+  spd = spd*r*max_spd;
 
   // Return the speed vector:
   return spd;
