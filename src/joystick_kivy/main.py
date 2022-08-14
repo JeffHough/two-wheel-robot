@@ -5,7 +5,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.behaviors import DragBehavior
 from kivy.graphics.vertex_instructions import Line, Rectangle, Ellipse
 from kivy.core.window import Window
-from kivy.properties import ObjectProperty, NumericProperty
+from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty
 from kivy.metrics import dp
 from kivy.clock import Clock
 
@@ -32,6 +32,7 @@ class JoystickCircle(DragBehavior, Widget):
 class JoystickLayout(BoxLayout):
 
   outer_radius = NumericProperty()
+  switch_on = BooleanProperty()
 
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
@@ -49,9 +50,33 @@ class JoystickLayout(BoxLayout):
     self.ids.joystick.pos_x = self.center_x - self.ids.joystick.radius/2
     self.ids.joystick.pos_y = self.center_y - self.ids.joystick.radius/2
 
+  def switch_change_state(self, switch):
+    self.switch_on = switch.active
+
   def on_touch_move(self, touch):
-    self.ids.joystick.pos_x = touch.x - self.ids.joystick.radius/2
-    self.ids.joystick.pos_y = touch.y - self.ids.joystick.radius/2
+
+    if (not self.switch_on):
+      self.on_touch_up(touch)
+      return
+
+    x = touch.x
+    y = touch.y
+
+    dx = x - self.center_x
+    dy = y - self.center_y
+
+    joystick_distance = np.sqrt( dx**2 + dy**2 )
+
+    max_radius = self.outer_radius - self.ids.joystick.radius/2
+
+    if joystick_distance > max_radius:
+      self.ids.joystick.pos_x = int(dx / joystick_distance * max_radius) + self.center_x - self.ids.joystick.radius/2
+      self.ids.joystick.pos_y = int(dy / joystick_distance * max_radius) + self.center_y - self.ids.joystick.radius/2
+
+    else:
+      self.ids.joystick.pos_x = dx + self.center_x - self.ids.joystick.radius/2
+      self.ids.joystick.pos_y = dy + self.center_y - self.ids.joystick.radius/2
+
 
 class JoystickApp(App):
   pass

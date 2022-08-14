@@ -5,6 +5,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# Install Eigen:
+add_subdirectory(external/eigen)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -16,7 +19,7 @@ add_executable(ros_interface
   src/two_wheel_robot.cpp
 )
 
-target_link_libraries(ros_interface -lwiringPi)
+target_link_libraries(ros_interface eigen -lwiringPi)
 
 # add the dependencies (MUST INCLUDE RCLCPP):
 ament_target_dependencies(
