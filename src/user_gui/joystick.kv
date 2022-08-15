@@ -1,0 +1,35 @@
+JoystickLayout:
+
+# Define the joystick circle itself:
+<JoystickCircle>:
+  drag_timeout: 1000000
+  drag_distance: 0
+  drag_rectangle: self.x, self.y, self.width, self.height
+  radius: root.radius
+  canvas:
+    Ellipse:
+      size: root.radius, root.radius
+      pos: self.pos_x, self.pos_y
+
+# place the joystick circle into the box layout:
+<JoystickLayout>:
+  joystick:joystick
+  switch:switch
+  orientation: "vertical"
+  Widget:
+    canvas:
+      Color:
+        rgba: 0.2, 0.7, 0.7, 1.0
+
+      # Circular line for the outside:
+      Line:
+        circle: (root.center_x, root.center_y, root.outer_radius) 
+  
+  JoystickCircle:
+    id:joystick
+
+  Switch:
+    id:switch
+    size_hint: 1, 0.2
+    active: root.switch_on
+    on_active: root.switch_change_state(self)
