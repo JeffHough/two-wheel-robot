@@ -83,6 +83,9 @@ class JoystickLayout(BoxLayout):
     self.ids.joystick.pos_x = self.center_x - self.ids.joystick.radius/2
     self.ids.joystick.pos_y = self.center_y - self.ids.joystick.radius/2
 
+    # reset the position to 0, 0 for the joystick:
+    self.joystick_socket.set_data(0, 0)
+
   def switch_change_state(self, switch):
     self.switch_on = switch.active
 
@@ -103,7 +106,7 @@ class JoystickLayout(BoxLayout):
 
     # set r and theta:
     r = joystick_distance/max_radius if (joystick_distance < max_radius) else 1
-    theta = np.arctan(dy, dx)
+    theta = np.math.atan2(dy, dx)
     self.joystick_socket.set_data(r, theta)
 
     if joystick_distance > max_radius:
@@ -113,7 +116,7 @@ class JoystickLayout(BoxLayout):
       self.ids.joystick.pos_x = dx + self.center_x - self.ids.joystick.radius/2
       self.ids.joystick.pos_y = dy + self.center_y - self.ids.joystick.radius/2
 
-  def send_joystick_position(self):
+  def send_joystick_position(self, event):
     self.joystick_socket.send_data()
 
 
