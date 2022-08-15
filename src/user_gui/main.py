@@ -12,6 +12,33 @@ from kivy.clock import Clock
 # For vector math:
 import numpy as np
 
+# For web communication:
+import socket
+import json
+
+# some constants:
+PI_IP_ADDR = "192.168.2.69"
+PI_PORT = 20001
+BUFFER_SIZE = 1024
+
+class JoystickSocket():
+  def __init__(self, pi_ip_addr, pi_port, buffer_size=1024):
+    # This is the data we will send:
+    self.server_address_port = (pi_ip_addr, pi_port)
+    self.buffer_size = buffer_size
+    self.joystick = {'r': 0, 'theta': 0}
+    self.udp_client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+
+  def set_data(self, r, theta):
+    self.joystick = {'r': r, 'theta': theta}
+
+  def send_data(self):
+    bytes_to_send = str.encode(json.dumps(self.joystick))
+    self.udp_client.sendto(bytes_to_send, self.server_address_port)
+
+
+# create our socket:
+udp_client_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
 # Combines the ellispe with draggable behaviour!
 class JoystickCircle(DragBehavior, Widget):
@@ -37,6 +64,12 @@ class JoystickLayout(BoxLayout):
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
     Clock.schedule_once(self.set_scene)
+
+    # initialize the socket for the joystick:
+    self.joystick_socket = JoystickSocket(PI_IP_ADDR, PI_PORT, BUFFER_SIZE)
+
+    # schedule the data to be send every 0.1 seconds:
+    Clock.schedule_interval(self.send_joystick_position, 0.1)
 
   def set_scene(self, *args):
     # Set the radius of the circle containing the joystick:
@@ -66,16 +99,22 @@ class JoystickLayout(BoxLayout):
     dy = y - self.center_y
 
     joystick_distance = np.sqrt( dx**2 + dy**2 )
-
     max_radius = self.outer_radius - self.ids.joystick.radius/2
+
+    # set r and theta:
+    r = joystick_distance/max_radius if (joystick_distance < max_radius) else 1
+    theta = np.arctan(dy, dx)
+    self.joystick_socket.set_data(r, theta)
 
     if joystick_distance > max_radius:
       self.ids.joystick.pos_x = int(dx / joystick_distance * max_radius) + self.center_x - self.ids.joystick.radius/2
       self.ids.joystick.pos_y = int(dy / joystick_distance * max_radius) + self.center_y - self.ids.joystick.radius/2
-
     else:
       self.ids.joystick.pos_x = dx + self.center_x - self.ids.joystick.radius/2
       self.ids.joystick.pos_y = dy + self.center_y - self.ids.joystick.radius/2
+
+  def send_joystick_position(self):
+    self.joystick_socket.send_data()
 
 
 class JoystickApp(App):
