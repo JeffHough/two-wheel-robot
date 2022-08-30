@@ -1,4 +1,4 @@
-# Joystick to Wheels:
+# Robot:
 The point of this module is to read from the /joystick topic,
 and output two "wheel speeds" to be written to the motor drivers.
 
