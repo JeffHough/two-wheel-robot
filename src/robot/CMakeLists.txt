@@ -5,22 +5,21 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Install Eigen:
-add_subdirectory(external/eigen)
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(Eigen3 3.4.0 REQUIRED)
 
 # install the python modules:
 ament_python_install_package(${PROJECT_NAME})
 
 # Install Python executables
 install(PROGRAMS
-  robot/nodes/joystick_publisher.py
+  robot/nodes/joystick_listener.py
+  robot/nodes/serial_write.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -30,7 +29,7 @@ add_executable(ros_interface
   src/two_wheel_robot.cpp
 )
 
-target_link_libraries(ros_interface eigen -lwiringPi)
+target_link_libraries(ros_interface Eigen3::Eigen)
 
 # add the dependencies (MUST INCLUDE RCLCPP):
 ament_target_dependencies(

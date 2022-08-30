@@ -1,3 +1,0 @@
-[submodule "src/robot/external/eigen"]
-	path = src/robot/external/eigen
-	url = https://gitlab.com/libeigen/eigen.git
