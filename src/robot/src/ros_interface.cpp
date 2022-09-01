@@ -6,7 +6,8 @@
 #include <Eigen/Dense>
 
 constexpr double kRate = 10.0; // Hz
-const std::string kTopicName = "/joystick";
+const std::string kJoystickTopicName = "/joystick";
+const std::string kWheelSpdTopicName = "/wheel_spds";
 constexpr int kQosProfile = 1;
 
 using std::placeholders::_1;
@@ -21,6 +22,9 @@ protected:
   // A subscriber to the joystick topic:
   rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr joystick_sub_;
 
+  // A publisher to the wheels speeds topic:
+  rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr wheel_spd_pub_;
+
   // The internal joystick variable:
   Eigen::Vector2d joystick_value_;
 
@@ -30,13 +34,13 @@ protected:
   // write the joystick values to the motors:
   void WriteMotors()
   {
-    // write to the RPi using the robot_ object and the current robot object:
-    robot_.WriteMotors(joystick_value_);
-    // This is okay here too!
-    // RCLCPP_INFO_STREAM(
-    //   get_logger(),
-    //   "Writing: r == " << joystick_value_(0) << ". theta == " << joystick_value_(1)
-    // );
+    // Get the wheel speeds from the joystick:
+    Eigen::Vector2d wheel_spds = robot_.WheelSpeedsFromJoystick(joystick_value_);
+
+    // Publisher:
+    std_msgs::msg::Float32MultiArray wheel_spds_msg;
+    wheel_spds_msg.data = {wheel_spds(0), wheel_spds(1)};
+    wheel_spd_pub_->publish(wheel_spds_msg);
   }
 
   // setter of the joystick value:
@@ -44,12 +48,6 @@ protected:
   {
     joystick_value_(0) = msg.data[0];
     joystick_value_(1) = msg.data[1];
-
-    // Sets properly!
-    // RCLCPP_INFO_STREAM(
-    //   get_logger(),
-    //   "Setting: r == " << joystick_value_(0) << ". theta == " << joystick_value_(1)
-    // );
   }
 
 public:
@@ -60,7 +58,8 @@ public:
     joystick_value_ = Eigen::Vector2d::Zero();
 
     // Setup the subscriber with the callback setter function:
-    joystick_sub_ = create_subscription<std_msgs::msg::Float32MultiArray>(kTopicName, 1, std::bind(&RobotInterace::SetJoystickValue, this, _1));
+    joystick_sub_ = create_subscription<std_msgs::msg::Float32MultiArray>(kJoystickTopicName, 1, std::bind(&RobotInterace::SetJoystickValue, this, _1));
+    wheel_spd_pub_ = create_publisher<std_msgs::msg::Float32MultiArray>(kWheelSpdTopicName, 1);
 
     // Create the rate object (which will control how quickly we run):
     rate_ = std::make_shared<rclcpp::Rate>(kRate);

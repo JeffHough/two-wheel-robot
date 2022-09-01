@@ -17,6 +17,7 @@ class JoystickListener(Node):
         self.pi_addr_port = (pi_ip_addr, pi_port)
         self.buffer = buffer_size
         self.web_server = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        self.web_server.bind(self.pi_addr_port)
 
         # create a publisher for the joystick data:
         self.joystick_publisher = self.create_publisher(Float32MultiArray, topic_name, 1)
@@ -37,11 +38,11 @@ class JoystickListener(Node):
             self.rate.sleep()
 
     def listen_joystick(self):
-        while (rclpy.ok()):
-            # listen on the web server for joystick updates from the gui:
-            msg = self.web_server.recv(self.buffer)
-            data = json.loads(msg)
-            self.joystick_msg.data = [data['r'], data['theta']]
+        # listen on the web server for joystick updates from the gui:
+        while (True):
+            msg_addr = self.web_server.recvfrom(self.buffer)
+            data = json.loads(msg_addr[0])
+            self.joystick_msg.data = [float(data['r']), float(data['theta'])]
 
 def main(args=None):
 
@@ -57,13 +58,19 @@ def main(args=None):
     rclpy.init()
 
     joystick_listener = JoystickListener(PI_IP_ADDR, PI_PORT, BUFFER_SIZE, RATE, TOPIC_NAME)
-    
-    spin_thread = threading.Thread(target=rclpy.spin, args=(joystick_listener,), daemon=True)
-    spin_thread.start()
-    joystick_listener.listen_joystick()
+
+    # Need to spin up the node if we want the rate to work!!
+    spinner = threading.Thread(target=rclpy.spin, args=(joystick_listener,), daemon=True)
+    spinner.start()
+
+    listen_thread = threading.Thread(target=joystick_listener.listen_joystick, args=(), daemon=True)
+    listen_thread.start()
+
+    joystick_listener.publish_joystick()
     joystick_listener.destroy_node()
     rclpy.shutdown()
-    spin_thread.join()
+    listen_thread.join()
+    spinner.join()
 
 
 if __name__ == "__main__":
