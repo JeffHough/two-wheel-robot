@@ -36,10 +36,6 @@ class JoystickSocket():
     bytes_to_send = str.encode(json.dumps(self.joystick))
     self.udp_client.sendto(bytes_to_send, self.server_address_port)
 
-
-# create our socket:
-udp_client_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-
 # Combines the ellispe with draggable behaviour!
 class JoystickCircle(DragBehavior, Widget):
 
@@ -56,7 +52,7 @@ class JoystickCircle(DragBehavior, Widget):
   radius = NumericProperty(dp(40))
     
 
-class JoystickLayout(BoxLayout):
+class Application(BoxLayout):
 
   outer_radius = NumericProperty()
   switch_on = BooleanProperty()
@@ -118,6 +114,9 @@ class JoystickLayout(BoxLayout):
 
   def send_joystick_position(self, event):
     self.joystick_socket.send_data()
+
+  def call_toggle_camera(self, event):
+    print("Calling the camera toggle!")
 
 
 class JoystickApp(App):

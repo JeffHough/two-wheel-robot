@@ -1,4 +1,4 @@
-JoystickLayout:
+Application:
 
 # Define the joystick circle itself:
 <JoystickCircle>:
@@ -12,7 +12,7 @@ JoystickLayout:
       pos: self.pos_x, self.pos_y
 
 # place the joystick circle into the box layout:
-<JoystickLayout>:
+<Application>:
   joystick:joystick
   switch:switch
   orientation: "vertical"
@@ -33,3 +33,9 @@ JoystickLayout:
     size_hint: 1, 0.2
     active: root.switch_on
     on_active: root.switch_change_state(self)
+
+  Button:
+    id:button
+    size_hint: 1, 0.2
+    text: "Toggle Camera"
+    on_press: root.call_toggle_camera(self)
