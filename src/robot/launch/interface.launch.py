@@ -12,11 +12,6 @@ def generate_launch_description():
         ),
         Node(
             package='robot',
-            executable='joystick_listener.py',
-            shell=True
-        ),
-        Node(
-            package='robot',
             executable='serial_write.py',
             shell=True
         ),

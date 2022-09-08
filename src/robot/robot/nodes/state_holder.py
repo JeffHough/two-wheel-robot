@@ -16,7 +16,7 @@ class StateHolder(Node):
     self.create_service(Trigger, "toggle_camera", self.ToggleCamera)
 
     # Create a publisher of the current camera state:
-    self.state_publisher_ = self.create_publisher(Bool, "camera_on", 1)
+    self.state_publisher_ = self.create_publisher(Bool, "/mae_tutorial/camera_on", 1)
 
     # create a rate to publish the states every 1 Hz or so:
     self.rate_ = self.create_rate(10.0)

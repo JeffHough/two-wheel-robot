@@ -5,8 +5,6 @@ import threading
 from time import sleep
 
 # ros-related:
-from std_msgs.msg import Float32MultiArray
-from example_interfaces.srv import Trigger
 import rclpy
 from rclpy.node import Node
 

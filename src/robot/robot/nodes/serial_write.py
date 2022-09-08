@@ -18,10 +18,10 @@ class WriteToArduino(Node):
         super().__init__("write_to_arduino")
         
         # The subscription to listen to the wheels speeds to write to the arduino:
-        self.create_subscription(Float32MultiArray, "/wheel_spds", self.WriteToArduino, 1)
+        self.create_subscription(Float32MultiArray, "/wheel_spds", self.WriteToArduino(), 1)
 
         # The subscription to listen to the camera being on or off:
-        self.create_subscription(Bool, "/camera_on", self.SetStates, 1)
+        self.create_subscription(Bool, "/camera_on", self.SetStates(), 1)
 
         # The motor speeds we want to write to the arduino:
         self.arduino_data = {"motor_A": 0.0, "motor_B": 0.0, "camera_on": False}

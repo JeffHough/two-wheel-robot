@@ -19,7 +19,6 @@ ament_python_install_package(${PROJECT_NAME})
 # Install Python executables
 install(PROGRAMS
   robot/nodes/joystick_listener.py
-  robot/nodes/serial_write.py
   robot/nodes/state_holder.py
   DESTINATION lib/${PROJECT_NAME}
 )
