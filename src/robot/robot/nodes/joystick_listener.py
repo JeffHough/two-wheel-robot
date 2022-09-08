@@ -37,17 +37,22 @@ class JoystickListener(Node):
             # sleep:
             self.rate.sleep()
 
-    def listen_joystick(self):
+    def listen_controller(self):
         # listen on the web server for joystick updates from the gui:
         while (True):
             msg_addr = self.web_server.recvfrom(self.buffer)
-            data = json.loads(msg_addr[0])
-            self.joystick_msg.data = [float(data['r']), float(data['theta'])]
+            try:
+                data = json.loads(msg_addr[0])
+                self.joystick_msg.data = [float(data['r']), float(data['theta'])]
+            except:
+                data = msg_addr[0].decode()
+                if data == "toggle_camera":
+                    self.get_logger().info("The user wanted to toggle the camera!")
 
 def main(args=None):
 
     TOPIC_NAME = "/joystick"
-    RATE = 10
+    RATE = 2
 
     # some constants:
     PI_IP_ADDR = "127.0.0.1"
@@ -63,7 +68,7 @@ def main(args=None):
     spinner = threading.Thread(target=rclpy.spin, args=(joystick_listener,), daemon=True)
     spinner.start()
 
-    listen_thread = threading.Thread(target=joystick_listener.listen_joystick, args=(), daemon=True)
+    listen_thread = threading.Thread(target=joystick_listener.listen_controller, args=(), daemon=True)
     listen_thread.start()
 
     joystick_listener.publish_joystick()

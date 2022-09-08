@@ -21,7 +21,7 @@ PI_IP_ADDR = "127.0.0.1"
 PI_PORT = 20001
 BUFFER_SIZE = 1024
 
-class JoystickSocket():
+class ControllerSocket():
   def __init__(self, pi_ip_addr, pi_port, buffer_size=1024):
     # This is the data we will send:
     self.server_address_port = (pi_ip_addr, pi_port)
@@ -35,6 +35,11 @@ class JoystickSocket():
   def send_data(self):
     bytes_to_send = str.encode(json.dumps(self.joystick))
     self.udp_client.sendto(bytes_to_send, self.server_address_port)
+
+  def send_toggle_camera(self):
+    bytes_to_send = str.encode("toggle_camera")
+    self.udp_client.sendto(bytes_to_send, self.server_address_port)
+
 
 # Combines the ellispe with draggable behaviour!
 class JoystickCircle(DragBehavior, Widget):
@@ -62,7 +67,7 @@ class Application(BoxLayout):
     Clock.schedule_once(self.set_scene)
 
     # initialize the socket for the joystick:
-    self.joystick_socket = JoystickSocket(PI_IP_ADDR, PI_PORT, BUFFER_SIZE)
+    self.controller_socket = ControllerSocket(PI_IP_ADDR, PI_PORT, BUFFER_SIZE)
 
     # schedule the data to be send every 0.1 seconds:
     Clock.schedule_interval(self.send_joystick_position, 0.1)
@@ -80,7 +85,7 @@ class Application(BoxLayout):
     self.ids.joystick.pos_y = self.center_y - self.ids.joystick.radius/2
 
     # reset the position to 0, 0 for the joystick:
-    self.joystick_socket.set_data(0, 0)
+    self.controller_socket.set_data(0, 0)
 
   def switch_change_state(self, switch):
     self.switch_on = switch.active
@@ -103,7 +108,7 @@ class Application(BoxLayout):
     # set r and theta:
     r = joystick_distance/max_radius if (joystick_distance < max_radius) else 1
     theta = np.math.atan2(dy, dx)
-    self.joystick_socket.set_data(r, theta)
+    self.controller_socket.set_data(r, theta)
 
     if joystick_distance > max_radius:
       self.ids.joystick.pos_x = int(dx / joystick_distance * max_radius) + self.center_x - self.ids.joystick.radius/2
@@ -113,10 +118,10 @@ class Application(BoxLayout):
       self.ids.joystick.pos_y = dy + self.center_y - self.ids.joystick.radius/2
 
   def send_joystick_position(self, event):
-    self.joystick_socket.send_data()
+    self.controller_socket.send_data()
 
   def call_toggle_camera(self, event):
-    print("Calling the camera toggle!")
+    self.controller_socket.send_toggle_camera()
 
 
 class JoystickApp(App):
