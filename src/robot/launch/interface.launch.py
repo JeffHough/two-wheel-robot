@@ -20,4 +20,9 @@ def generate_launch_description():
             executable='serial_write.py',
             shell=True
         ),
+        Node(
+            package='robot',
+            executable='state_holder.py',
+            shell=True
+        ),
     ])

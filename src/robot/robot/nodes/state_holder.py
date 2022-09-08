@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from multiprocessing.util import get_logger
 import threading
 
 # ros-related:
@@ -17,42 +18,30 @@ class StateHolder(Node):
     # initialize the states:
     self.camera_on = False
 
+    # Message that we are ready
+    self.get_logger().info("Ready to toggle the states!")
+
   def ToggleCamera(self, req, res):
     try:
       self.camera_on = not self.camera_on
       res.success = True
+      res.message = f"Camera on?: {str(self.camera_on)}"
     except:
       res.success = False
       res.message = "Failed for some reason :("
 
+    return res
+    
 
 def main(args=None):
 
-  TOPIC_NAME = "/joystick"
-  RATE = 2
-
-  # some constants:
-  PI_IP_ADDR = "127.0.0.1"
-  PI_PORT = 20001
-  BUFFER_SIZE = 1024
-
   # initialize the ros client:
   rclpy.init()
+  state_holder = StateHolder()
 
-  joystick_listener = JoystickListener(PI_IP_ADDR, PI_PORT, BUFFER_SIZE, RATE, TOPIC_NAME)
-
-  # Need to spin up the node if we want the rate to work!!
-  spinner = threading.Thread(target=rclpy.spin, args=(joystick_listener,), daemon=True)
-  spinner.start()
-
-  listen_thread = threading.Thread(target=joystick_listener.listen_controller, args=(), daemon=True)
-  listen_thread.start()
-
-  joystick_listener.publish_joystick()
-  joystick_listener.destroy_node()
+  # spinning will block, but we don't do anything else:
+  rclpy.spin(state_holder)
   rclpy.shutdown()
-  listen_thread.join()
-  spinner.join()
 
 
 if __name__ == "__main__":

@@ -2,9 +2,11 @@
 import json
 import socket
 import threading
+from time import sleep
 
 # ros-related:
 from std_msgs.msg import Float32MultiArray
+from example_interfaces.srv import Trigger
 import rclpy
 from rclpy.node import Node
 
@@ -29,6 +31,12 @@ class JoystickListener(Node):
         # initialize the joystick_msg:
         self.joystick_msg.data = [0.0, 0.0]
 
+        # create a client to toggle the camera on and off:
+        self.toggle_camera_client = self.create_client(Trigger, "toggle_camera")
+
+        while not self.toggle_camera_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+
     def publish_joystick(self):
         while (rclpy.ok()):
             # publish the most recent msg:
@@ -46,8 +54,16 @@ class JoystickListener(Node):
                 self.joystick_msg.data = [float(data['r']), float(data['theta'])]
             except:
                 data = msg_addr[0].decode()
+                self.get_logger().info(f"data: {data}")
                 if data == "toggle_camera":
-                    self.get_logger().info("The user wanted to toggle the camera!")
+                    # # create a "trigger" service to toggle the camera mode
+                    trigger = Trigger.Request()
+                    self.future = self.toggle_camera_client.call_async(trigger)
+                    while not self.future.done():
+                        # definitely not the best way to do this.
+                        sleep(0.001)
+                    self.get_logger().info(self.future.result().message)
+                    
 
 def main(args=None):
 
