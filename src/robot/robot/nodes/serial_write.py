@@ -1,25 +1,20 @@
 #!/usr/bin/env python3
 from rclpy.node import Node
 import rclpy
-import threading
 from std_msgs.msg import Float32MultiArray
 
-USB_PORT = "/dev/ttyACM0"  # Arduino Uno WiFi Rev2
-BAUD_RATE = 9600
+# USB_PORT = "/dev/ttyACM0"  # Arduino Uno WiFi Rev2
+# BAUD_RATE = 9600
 
-# should be done about 2x the write speed
-TIMEOUT = 0.05
+# # should be done about 2x the write speed
+# TIMEOUT = 0.05
 
 # Imports
-import serial
 import json
 
 class WriteToArduino(Node):
     def __init__(self):
         super().__init__("write_to_arduino")
-
-        # The usb port for writing to the arduino:
-        self.usb = serial.Serial(USB_PORT, BAUD_RATE, timeout=TIMEOUT)
         
         # The subscription to listen to the wheels speeds to write to the arduino:
         self.create_subscription(Float32MultiArray, "/wheel_spds", self.WriteToArduino, 1)
@@ -32,8 +27,9 @@ class WriteToArduino(Node):
         self.motors["motor_A"] = msg.data[0]
         self.motors["motor_B"] = msg.data[1]
 
-        # write these to the arduino:
-        self.usb.write(json.dumps(self.motors).encode())
+        # # write these to the arduino:
+        # self.usb.write(json.dumps(self.motors).encode())
+        self.get_logger().info("We would be writing the values: " + str(self.motors))
 
 def main(args=None):
     # initialize the ros client:
