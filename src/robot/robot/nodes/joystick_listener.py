@@ -50,7 +50,7 @@ def main(args=None):
     RATE = 10
 
     # some constants:
-    PI_IP_ADDR = "192.168.2.69"
+    PI_IP_ADDR = "127.0.0.1"
     PI_PORT = 20001
     BUFFER_SIZE = 1024
 
