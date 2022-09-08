@@ -54,15 +54,10 @@ class JoystickListener(Node):
                 self.joystick_msg.data = [float(data['r']), float(data['theta'])]
             except:
                 data = msg_addr[0].decode()
-                self.get_logger().info(f"data: {data}")
                 if data == "toggle_camera":
-                    # # create a "trigger" service to toggle the camera mode
+                    # create a "trigger" service to toggle the camera mode
                     trigger = Trigger.Request()
                     self.future = self.toggle_camera_client.call_async(trigger)
-                    while not self.future.done():
-                        # definitely not the best way to do this.
-                        sleep(0.001)
-                    self.get_logger().info(self.future.result().message)
                     
 
 def main(args=None):

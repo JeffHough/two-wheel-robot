@@ -19,7 +19,7 @@ class StateHolder(Node):
     self.state_publisher_ = self.create_publisher(Bool, "camera_on", 1)
 
     # create a rate to publish the states every 1 Hz or so:
-    self.rate_ = self.create_rate(1.0)
+    self.rate_ = self.create_rate(10.0)
 
     # initialize the states:
     self.camera_on = False
