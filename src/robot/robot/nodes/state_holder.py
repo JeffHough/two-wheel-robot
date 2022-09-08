@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-from multiprocessing.util import get_logger
 import threading
 
 # ros-related:
 from example_interfaces.srv import Trigger
+from example_interfaces.msg import Bool
 import rclpy
 from rclpy.node import Node
 
@@ -14,6 +14,12 @@ class StateHolder(Node):
 
     # Create a service to toggle the camera:
     self.create_service(Trigger, "toggle_camera", self.ToggleCamera)
+
+    # Create a publisher of the current camera state:
+    self.state_publisher_ = self.create_publisher(Bool, "camera_on", 1)
+
+    # create a rate to publish the states every 1 Hz or so:
+    self.rate_ = self.create_rate(1.0)
 
     # initialize the states:
     self.camera_on = False
@@ -31,6 +37,14 @@ class StateHolder(Node):
       res.message = "Failed for some reason :("
 
     return res
+
+  def RunStatePublisher(self):
+    while rclpy.ok():
+      msg = Bool()
+      msg.data = self.camera_on
+      self.state_publisher_.publish(msg)
+
+      self.rate_.sleep()
     
 
 def main(args=None):
@@ -40,7 +54,10 @@ def main(args=None):
   state_holder = StateHolder()
 
   # spinning will block, but we don't do anything else:
-  rclpy.spin(state_holder)
+  spinner = threading.Thread(target=rclpy.spin, args=(state_holder, ), daemon=True)
+  spinner.start()
+
+  state_holder.RunStatePublisher()
   rclpy.shutdown()
 
 
