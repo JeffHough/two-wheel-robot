@@ -57,7 +57,7 @@ class JoystickListener(Node):
             try:
                 data = json.loads(msg_addr[0])
                 self.joystick_msg.data = [float(data['r']), float(data['theta'])]
-            except:
+            except json.JSONDecodeError:
                 data = msg_addr[0].decode()
                 if data == "toggle_camera":
                     self.toggle_camera()
