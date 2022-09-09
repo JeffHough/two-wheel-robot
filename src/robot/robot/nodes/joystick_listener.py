@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+from ast import Call
 import json
 import socket
 import threading
 from time import sleep
+
+from rclpy.callback_groups import ReentrantCallbackGroup
 
 # ros-related:
 from std_msgs.msg import Float32MultiArray
@@ -32,7 +35,9 @@ class JoystickListener(Node):
         self.joystick_msg.data = [0.0, 0.0]
 
         # create a client to toggle the camera on and off:
-        self.toggle_camera_client = self.create_client(Trigger, "toggle_camera")
+        # NOTE - the callback group needs to be reentrant..... not sure why?
+        cb_group = ReentrantCallbackGroup()
+        self.toggle_camera_client = self.create_client(Trigger, "toggle_camera", callback_group=cb_group)
 
         while not self.toggle_camera_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service not available, waiting again...')
@@ -55,15 +60,19 @@ class JoystickListener(Node):
             except:
                 data = msg_addr[0].decode()
                 if data == "toggle_camera":
-                    # create a "trigger" service to toggle the camera mode
-                    trigger = Trigger.Request()
-                    self.future = self.toggle_camera_client.call_async(trigger)
+                    self.toggle_camera()
+
+    def toggle_camera(self):
+        # create a "trigger" service to toggle the camera mode
+        trigger = Trigger.Request()
+        result = self.toggle_camera_client.call(trigger)
+        self.get_logger().info("Message from service: " + result.message)
                     
 
 def main(args=None):
 
     TOPIC_NAME = "/joystick"
-    RATE = 2
+    RATE = 10
 
     # some constants:
     PI_IP_ADDR = "127.0.0.1"
