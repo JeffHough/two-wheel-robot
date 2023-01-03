@@ -57,7 +57,7 @@ Eigen::Vector2d TwoWheelRobot::WheelSpeedsFromJoystick(const Eigen::Vector2d &jo
   const double &theta = joystick(1);
 
   // Get the [normalized] wheel speeds in a vector:
-  Eigen::Vector2d direction = {NomalizedLeftWheelSpeed(theta), NomalizedRightWheelSpeed(theta)};
+  Eigen::Vector2d direction = {NomalizedRightWheelSpeed(theta), NomalizedLeftWheelSpeed(theta)};
 
   // Use the "r" as scaling:
   auto spd = direction * r;

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 from rclpy.node import Node
 import rclpy
-import threading
 from std_msgs.msg import Float32MultiArray
 
-USB_PORT = "/dev/ttyACM0"  # Arduino Uno WiFi Rev2
-BAUD_RATE = 9600
+# import a specialized python serial communication library:
+from pySerialTransfer import pySerialTransfer as txfer
 
-# should be done about 2x the write speed
-TIMEOUT = 0.05
+
+USB_PORT = "/dev/ttyACM0"  # Arduino Uno WiFi Rev2
 
 # Imports
 import serial
@@ -19,21 +18,29 @@ class WriteToArduino(Node):
         super().__init__("write_to_arduino")
 
         # The usb port for writing to the arduino:
-        self.usb = serial.Serial(USB_PORT, BAUD_RATE, timeout=TIMEOUT)
+        self.usb = txfer.SerialTransfer(USB_PORT)
+        link_open = False
         
+        # Open the usb link:
+        while not link_open:
+            try:
+                self.usb.open()
+                link_open = True
+            except:
+                self.usb.close()
+
         # The subscription to listen to the wheels speeds to write to the arduino:
         self.create_subscription(Float32MultiArray, "/wheel_spds", self.WriteToArduino, 1)
 
-        # The motor speeds we want to write to the arduino:
-        self.motors = {"motor_A": 0.0, "motor_B": 0.0}
-
     def WriteToArduino(self, msg):
+        send_size = 0
         # grab the two motor speeds from the subscription:
-        self.motors["motor_A"] = msg.data[0]
-        self.motors["motor_B"] = msg.data[1]
+        motor_speeds = [msg.data[0], msg.data[1]]
+        list_size = self.usb.tx_obj(motor_speeds)
+        send_size += list_size
 
-        # write these to the arduino:
-        self.usb.write(json.dumps(self.motors).encode())
+        # serial write these to the arduino:
+        self.usb.send(send_size)
 
 def main(args=None):
     # initialize the ros client:
