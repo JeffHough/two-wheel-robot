@@ -5,7 +5,7 @@
 #include <std_msgs/msg/float32_multi_array.hpp>
 #include <Eigen/Dense>
 
-constexpr double kRate = 10.0; // Hz
+constexpr double kRate = 100.0; // Hz
 const std::string kJoystickTopicName = "/joystick";
 const std::string kWheelSpdTopicName = "/wheel_spds";
 constexpr int kQosProfile = 1;

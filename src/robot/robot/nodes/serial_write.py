@@ -2,16 +2,13 @@
 from rclpy.node import Node
 import rclpy
 from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Bool
 
 # import a specialized python serial communication library:
 from pySerialTransfer import pySerialTransfer as txfer
 
 
 USB_PORT = "/dev/ttyACM0"  # Arduino Uno WiFi Rev2
-
-# Imports
-import serial
-import json
 
 class WriteToArduino(Node):
     def __init__(self):
@@ -32,12 +29,21 @@ class WriteToArduino(Node):
         # The subscription to listen to the wheels speeds to write to the arduino:
         self.create_subscription(Float32MultiArray, "/wheel_spds", self.WriteToArduino, 1)
 
+        # Create a publisher where we will publish and empty boolean whenever we write to the
+        # wheels. We can use this to see how quickly we are actually writing.
+        self.pub = self.create_publisher(Bool, "/write_spd", 1)
+
+        self.bool_msg = Bool()
+
     def WriteToArduino(self, msg):
         send_size = 0
         # grab the two motor speeds from the subscription:
         motor_speeds = [msg.data[0], msg.data[1]]
         list_size = self.usb.tx_obj(motor_speeds)
         send_size += list_size
+
+        # publish that we are serial writing:
+        self.pub.publish(self.bool_msg)
 
         # serial write these to the arduino:
         self.usb.send(send_size)
