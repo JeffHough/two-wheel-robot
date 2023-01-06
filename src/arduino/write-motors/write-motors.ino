@@ -51,7 +51,22 @@ void setup() {
 //{motor_A: double spd, motor_B: double spd};
 
 void loop() {
-  // First, write to each motor its current desired speed:
+
+  // If serial is available, update the values, and write to the motors:
+  if(myTransfer.available())
+  {
+    double desired_motor_speeds[2];
+    myTransfer.rxObj(desired_motor_speeds);
+    motors[0].spd = desired_motor_speeds[0];
+    motors[1].spd = desired_motor_speeds[1];
+  
+    WriteMotors();
+
+  }
+
+}
+
+void WriteMotors(){
   for (const auto& motor : motors)
   {
     if (motor.spd >= 0.0)
@@ -66,15 +81,4 @@ void loop() {
     }
     analogWrite(motor.pwm, abs(static_cast<int>(motor.spd * kMaxPWM)));
   }
-
-  // If serial is available, update the values:
-  if(myTransfer.available())
-  {
-    double desired_motor_speeds[2];
-    myTransfer.rxObj(desired_motor_speeds);
-    motors[0].spd = desired_motor_speeds[0];
-    motors[1].spd = desired_motor_speeds[1];
-  
-  }
-
 }
